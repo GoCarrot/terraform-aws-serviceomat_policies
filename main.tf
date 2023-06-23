@@ -26,7 +26,7 @@ terraform {
 data "aws_default_tags" "tags" {}
 
 data "aws_ssm_parameter" "organization-prefix" {
-  #provider = aws.meta
+  provider = aws.meta
 
   name = "/omat/organization_prefix"
 }
