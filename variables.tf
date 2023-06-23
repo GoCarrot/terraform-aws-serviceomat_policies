@@ -14,7 +14,7 @@
 
 variable "tags" {
   type        = map(string)
-  default     = null
+  default     = {}
   description = "Additional tags to attach the created IAM policies."
 }
 
