@@ -1,3 +1,13 @@
+## 0.0.4
+
+ENHANCEMENTS:
+
+* Create a new ServiceomatBase policy which combines LogAccess and ConfigAccess, to reduce role policy attachements.
+
+BUG FIXES:
+
+* Now respects the log_access_policy_name and config_access_policy_name inputs.
+
 ## 0.0.3
 
 BUG FIXES:
