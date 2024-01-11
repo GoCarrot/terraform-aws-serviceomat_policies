@@ -80,7 +80,7 @@ data "aws_iam_policy_document" "log_access" {
 }
 
 resource "aws_iam_policy" "log-access" {
-  name   = "LogAccess"
+  name   = var.log_access_policy_name
   policy = data.aws_iam_policy_document.log_access.json
 
   tags = local.tags
@@ -206,7 +206,7 @@ data "aws_iam_policy_document" "app_config" {
 }
 
 resource "aws_iam_policy" "config-access" {
-  name   = "ConfigAccess"
+  name   = var.config_access_policy_name
   policy = data.aws_iam_policy_document.app_config.json
 
   tags = local.tags
