@@ -35,3 +35,9 @@ variable "config_access_policy_name" {
   default     = "ConfigAccess"
   description = "The name to assign to the IAM policy which permits configuration access."
 }
+
+variable "serviceomat_base_policy_name" {
+  type        = string
+  default     = "ServiceomatBase"
+  description = "The name to assign to the IAM policy which permits general serviceomat access."
+}

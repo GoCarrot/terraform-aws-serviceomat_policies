@@ -211,3 +211,167 @@ resource "aws_iam_policy" "config-access" {
 
   tags = local.tags
 }
+
+data "aws_iam_policy_document" "serviceomat-base" {
+  statement {
+    sid    = "AllowDescribeCreateLogStreams"
+    effect = "Allow"
+    actions = [
+      "logs:CreateLogStream",
+      "logs:DescribeLogStreams",
+    ]
+    resources = [
+      "arn:aws:logs:*:*:log-group:/${local.organization_prefix}/server/&{aws:PrincipalTag/Environment}/ancillary/*",
+      "arn:aws:logs:*:*:log-group:/${local.organization_prefix}/server/&{aws:PrincipalTag/Environment}/service/&{aws:PrincipalTag/Service}:*",
+      "arn:aws:logs:*:*:log-group:/${local.organization_prefix}/server/&{aws:PrincipalTag/Environment}/service/&{aws:PrincipalTag/Service}/*"
+    ]
+  }
+
+  statement {
+    sid    = "AllowDescribeLogGroups"
+    effect = "Allow"
+    actions = [
+      "logs:DescribeLogGroups",
+    ]
+    resources = [
+      "arn:aws:logs:*:*:log-group:*",
+    ]
+  }
+
+  statement {
+    sid    = "AllowPutLogEvents"
+    effect = "Allow"
+    actions = [
+      "logs:PutLogEvents"
+    ]
+    resources = [
+      "arn:aws:logs:*:*:log-group:/${local.organization_prefix}/server/&{aws:PrincipalTag/Environment}/ancillary/*:log-stream:&{aws:PrincipalTag/Service}.*",
+      "arn:aws:logs:*:*:log-group:/${local.organization_prefix}/server/&{aws:PrincipalTag/Environment}/service/&{aws:PrincipalTag/Service}:log-stream:&{aws:PrincipalTag/Service}.*",
+      "arn:aws:logs:*:*:log-group:/${local.organization_prefix}/server/&{aws:PrincipalTag/Environment}/service/&{aws:PrincipalTag/Service}/*:log-stream:&{aws:PrincipalTag/Service}.*"
+    ]
+  }
+
+  statement {
+    sid    = "AllowGetServiceConfiguration"
+    effect = "Allow"
+    actions = [
+      "appconfig:GetConfiguration",
+    ]
+    resources = [
+      "arn:aws:appconfig:*:*:application/*",
+    ]
+
+    condition {
+      test     = "StringEquals"
+      variable = "aws:ResourceTag/Service"
+      values = [
+        "&{aws:PrincipalTag/Service}"
+      ]
+    }
+  }
+
+  statement {
+    sid    = "AllowGetSharedServiceConfiguration"
+    effect = "Allow"
+    actions = [
+      "appconfig:GetConfiguration",
+    ]
+    resources = [
+      "arn:aws:appconfig:*:*:application/*",
+    ]
+
+    condition {
+      test     = "StringLike"
+      variable = "aws:ResourceTag/SharedWith"
+      values = [
+        "*@&{aws:PrincipalTag/Service}@*"
+      ]
+    }
+  }
+
+  statement {
+    sid    = "AllowGetSharedConfiguration"
+    effect = "Allow"
+    actions = [
+      "appconfig:GetConfiguration",
+    ]
+    resources = [
+      "arn:aws:appconfig:*:*:application/*",
+    ]
+
+    condition {
+      test     = "StringEquals"
+      variable = "aws:ResourceTag/Service"
+      values = [
+        "shared-infra"
+      ]
+    }
+  }
+
+  dynamic "statement" {
+    for_each = local.config_bucket_id
+    content {
+      sid    = "AllowS3GetServiceConfiguration"
+      effect = "Allow"
+      actions = [
+        "s3:GetObject"
+      ]
+      resources = [
+        "arn:aws:s3::*:${statement.key}/*"
+      ]
+
+      condition {
+        test     = "StringEquals"
+        variable = "s3:ExistingObjectTag/Service"
+        values   = ["&{aws:PrincipalTag/Service}"]
+      }
+    }
+  }
+
+  dynamic "statement" {
+    for_each = local.config_bucket_id
+    content {
+      sid    = "AllowS3GetSharedServiceConfiguration"
+      effect = "Allow"
+      actions = [
+        "s3:GetObject"
+      ]
+      resources = [
+        "arn:aws:s3::*:${statement.key}/*"
+      ]
+
+      condition {
+        test     = "StringLike"
+        variable = "s3:ExistingObjectTag/SharedWith"
+        values   = ["*@&{aws:PrincipalTag/Service}@*"]
+      }
+    }
+  }
+
+  dynamic "statement" {
+    for_each = local.config_bucket_id
+    content {
+      sid    = "AllowS3GetSharedConfiguration"
+      effect = "Allow"
+      actions = [
+        "s3:GetObject"
+      ]
+      resources = [
+        "arn:aws:s3::*:${statement.key}/*"
+      ]
+
+      condition {
+        test     = "StringLike"
+        variable = "s3:ExistingObjectTag/Service"
+        values   = ["shared-infra"]
+      }
+    }
+  }
+}
+
+resource "aws_iam_policy" "serviceomat-base" {
+  name   = var.serviceomat_base_policy_name
+  policy = data.aws_iam_policy_document.serviceomat-base.json
+
+  tags = local.tags
+}
