@@ -1,3 +1,9 @@
+## 0.0.5
+
+ENHANCEMENTS:
+
+* Adds support for an interservice communication bucket.
+
 ## 0.0.4
 
 ENHANCEMENTS:
