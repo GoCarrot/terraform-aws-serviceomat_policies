@@ -37,6 +37,8 @@ locals {
   organization_prefix = nonsensitive(data.aws_ssm_parameter.organization-prefix.value)
 
   config_bucket_id = toset(compact([var.config_bucket_id]))
+
+  interservice_bucket_id = toset(compact([var.interservice_bucket_id]))
 }
 
 data "aws_iam_policy_document" "log_access" {
@@ -365,6 +367,36 @@ data "aws_iam_policy_document" "serviceomat-base" {
         variable = "s3:ExistingObjectTag/Service"
         values   = ["shared-infra"]
       }
+    }
+  }
+
+  dynamic "statement" {
+    for_each = local.interservice_bucket_id
+    content {
+      sid    = "AllowS3PutInterservice"
+      effect = "Allow"
+      actions = [
+        "s3:PutObject"
+      ]
+      resources = [
+        "arn:aws:s3::*:${statement.key}/*/&{aws:PrincipalTag/Service}/*"
+      ]
+    }
+  }
+
+  dynamic "statement" {
+    for_each = local.interservice_bucket_id
+    content {
+      sid    = "AllowS3ManageInterservice"
+      effect = "Allow"
+      actions = [
+        "s3:PutObject",
+        "s3:GetObject",
+        "s3:DeleteObject"
+      ]
+      resources = [
+        "arn:aws:s3::*:${statement.key}/&{aws:PrincipalTag/Service}/*"
+      ]
     }
   }
 }

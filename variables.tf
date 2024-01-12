@@ -24,6 +24,12 @@ variable "config_bucket_id" {
   description = "The ID of the S3 bucket backup configuration is stored in."
 }
 
+variable "interservice_bucket_id" {
+  type        = string
+  default     = null
+  description = "The ID of the S3 bucket used for interservice communication/dropbox usage."
+}
+
 variable "log_access_policy_name" {
   type        = string
   default     = "LogAccess"
